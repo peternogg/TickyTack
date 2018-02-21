@@ -4,24 +4,42 @@
 
 #include "TickyTack.h"
 
-void DrawBoard(Board_t*);
-
 int main() {
     // Prep the screen
     initscr();
-    // Poll inputs every 1/10th of a second
     cbreak();
     // Don't echo anything to the screen
     noecho();
-    keypad(stdscr, true);
+    // Make getch() return immediately
+    nodelay(stdscr, TRUE);
+    // Turn on keypad support to interpret special stuff
+    keypad(stdscr, TRUE);
+    // Hide the cursor
+    curs_set(0);
 
     // Ask for mouse position info
     mousemask(REPORT_MOUSE_POSITION | BUTTON1_CLICKED | BUTTON1_PRESSED, NULL);
+
+    // Set up the windows
+    WINDOW* play;
+    WINDOW* log;
+
+    if (CreateWindows(&play, &log) == ERR)
+    {
+        endwin();
+        fputs("Failed to create windows", stderr);
+        exit(1);
+    }
+
+    // Draw boxes around play and log
+    box(play, '|', '-');
+    box(log, '|', '-');
 
     Game_t game;
     MEVENT mouseEvent;
 
     Game_init(&game);
+
 
     while(game.keepPlaying) {
         int c = getch();
@@ -29,19 +47,37 @@ int main() {
         if (c == KEY_MOUSE) {
             // Whoa! Mouse event!
             if (getmouse(&mouseEvent) == OK) {
-                if (mouseEvent.bstate & REPORT_MOUSE_POSITION)
-                    move(mouseEvent.y, mouseEvent.x);
-                
-                if (mouseEvent.bstate & BUTTON1_CLICKED || mouseEvent.bstate & BUTTON1_PRESSED)
-                    addch('c');
+                if (mouseEvent.bstate & BUTTON1_CLICKED || mouseEvent.bstate & BUTTON1_PRESSED) {
+                    // If the mouse was clicked on the play window, then 
+                    if (wenclose(play, mouseEvent.y, mouseEvent.x))
+                        mvaddch(mouseEvent.y, mouseEvent.x, 'c');
+                }
+
             }
         }
 
-        if (c == 'q')
-            game.keepPlaying = false;
+        box(play, '|', '-');
+        box(log, '|', '-');
 
-        refresh();
+        wrefresh(play);
+        wrefresh(log);
+
+        if (c == 'q')
+            game.keepPlaying = false;        
     }
 
+    delwin(play);
+    delwin(log);
     endwin();
+}
+
+int CreateWindows(WINDOW** play, WINDOW** log) {
+    int playHeight = (2 * LINES) / 3;
+    *play = newwin(playHeight, COLS, 0, 0);
+    *log = newwin(LINES - playHeight, COLS, playHeight, 0);
+
+    if (*log && *play)
+        return OK;
+    else    
+        return ERR;
 }

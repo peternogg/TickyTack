@@ -7,7 +7,9 @@
 #include "Board.h"
 
 void Update();
-void Draw(Board_t* board);
+void DrawBoard(Board_t*);
+
+int CreateWindows(WINDOW** play, WINDOW** log);
 
 int PlayerMove(Board_t* board);
 int RandomMove(Board_t* board);

@@ -31,39 +31,44 @@ int main() {
         exit(1);
     }
 
-    // Draw boxes around play and log
-    box(play, '|', '-');
-    box(log, '|', '-');
-
     Game_t game;
     MEVENT mouseEvent;
 
     Game_init(&game);
 
-
     while(game.keepPlaying) {
-        int c = getch();
-
-        if (c == KEY_MOUSE) {
-            // Whoa! Mouse event!
-            if (getmouse(&mouseEvent) == OK) {
-                if (mouseEvent.bstate & BUTTON1_CLICKED || mouseEvent.bstate & BUTTON1_PRESSED) {
-                    // If the mouse was clicked on the play window, then 
-                    if (wenclose(play, mouseEvent.y, mouseEvent.x))
-                        mvaddch(mouseEvent.y, mouseEvent.x, 'c');
-                }
-
-            }
-        }
-
         box(play, '|', '-');
         box(log, '|', '-');
 
         wrefresh(play);
         wrefresh(log);
 
+        int c = getch();
+
+        if (c == KEY_MOUSE) {
+            // Whoa! Mouse event!
+            if (getmouse(&mouseEvent) == OK) {
+                if (mouseEvent.bstate & BUTTON1_CLICKED) {
+                    // If the mouse was clicked on the play window, then 
+                    if (wenclose(play, mouseEvent.y, mouseEvent.x)) {
+                        mvwaddch(play, mouseEvent.y, mouseEvent.x, 'c');
+                    }
+                }
+            }
+        }
+
         if (c == 'q')
-            game.keepPlaying = false;        
+            game.keepPlaying = false;
+
+        if (c == 'd')
+            DrawBoard(game.board, play, 4, 4);
+
+        if (c == 'f') {
+            for (int i = 0; i < SPACE_COUNT; i++)
+                game.board->spaces[i] = (rand() % 26) + 'A';
+
+            DrawBoard(game.board, play, 4, 4);
+        }
     }
 
     delwin(play);
@@ -80,4 +85,19 @@ int CreateWindows(WINDOW** play, WINDOW** log) {
         return OK;
     else    
         return ERR;
+}
+
+void DrawBoard(Board_t* board, WINDOW* win, int x, int y) {
+    wmove(win, y, x);
+    for (int i = 1; i <= SPACE_COUNT; i++) {
+        waddch(win, board->spaces[i - 1]);
+        
+
+        if (i % 3 == 0)
+            wmove(win, ++y, x);
+        else
+            waddch(win, '|');
+    }
+
+    wrefresh(win);
 }

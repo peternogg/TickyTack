@@ -21,4 +21,4 @@ Board.o: $(SRC)Board.c
 	$(CC) $(WARNINGS) $(CFLAGS) -c $(SRC)Board.c -o $(BUILD)Board.o
 
 clean:
-	rm -f TickyTack $(BUILD)*.o
+	rm -f $(BUILD)*

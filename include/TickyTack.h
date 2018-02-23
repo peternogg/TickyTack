@@ -7,7 +7,7 @@
 #include "Board.h"
 
 void Update();
-void DrawBoard(Board_t*);
+void DrawBoard(Board_t*, WINDOW*, int, int);
 
 int CreateWindows(WINDOW** play, WINDOW** log);
 

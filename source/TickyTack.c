@@ -20,28 +20,22 @@ int main() {
     // Ask for mouse position info
     mousemask(REPORT_MOUSE_POSITION | BUTTON1_CLICKED | BUTTON1_PRESSED, NULL);
 
-    // Set up the windows
-    WINDOW* play;
-    WINDOW* log;
-
-    if (CreateWindows(&play, &log) == ERR)
-    {
-        endwin();
-        fputs("Failed to create windows", stderr);
-        exit(1);
-    }
-
     Game_t game;
     MEVENT mouseEvent;
 
-    Game_init(&game);
+    if (Game_init(&game) == ERR)
+    {
+        endwin();
+        fputs("Unable to start game.", stderr);
+        exit(1);
+    }
 
     while(game.keepPlaying) {
-        box(play, '|', '-');
-        box(log, '|', '-');
+        box(game.playField, '|', '-');
+        box(game.logField, '|', '-');
 
-        wrefresh(play);
-        wrefresh(log);
+        wrefresh(game.playField);
+        wrefresh(game.logField);
 
         int c = getch();
 
@@ -50,8 +44,8 @@ int main() {
             if (getmouse(&mouseEvent) == OK) {
                 if (mouseEvent.bstate & BUTTON1_CLICKED) {
                     // If the mouse was clicked on the play window, then 
-                    if (wenclose(play, mouseEvent.y, mouseEvent.x)) {
-                        mvwaddch(play, mouseEvent.y, mouseEvent.x, 'c');
+                    if (wenclose(game.playField, mouseEvent.y, mouseEvent.x)) {
+                        mvwaddch(game.playField, mouseEvent.y, mouseEvent.x, 'c');
                     }
                 }
             }
@@ -60,44 +54,15 @@ int main() {
         if (c == 'q')
             game.keepPlaying = false;
 
-        if (c == 'd')
-            DrawBoard(game.board, play, 4, 4);
-
         if (c == 'f') {
             for (int i = 0; i < SPACE_COUNT; i++)
                 game.board->spaces[i] = (rand() % 26) + 'A';
-
-            DrawBoard(game.board, play, 4, 4);
         }
+
+        Game_draw(&game);
     }
 
-    delwin(play);
-    delwin(log);
+    Game_free(&game);
+
     endwin();
-}
-
-int CreateWindows(WINDOW** play, WINDOW** log) {
-    int playHeight = (2 * LINES) / 3;
-    *play = newwin(playHeight, COLS, 0, 0);
-    *log = newwin(LINES - playHeight, COLS, playHeight, 0);
-
-    if (*log && *play)
-        return OK;
-    else    
-        return ERR;
-}
-
-void DrawBoard(Board_t* board, WINDOW* win, int x, int y) {
-    wmove(win, y, x);
-    for (int i = 1; i <= SPACE_COUNT; i++) {
-        waddch(win, board->spaces[i - 1]);
-        
-
-        if (i % 3 == 0)
-            wmove(win, ++y, x);
-        else
-            waddch(win, '|');
-    }
-
-    wrefresh(win);
 }

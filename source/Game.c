@@ -9,8 +9,16 @@ static int Game_createWindows(Game_t* game) {
     game->playField = newwin(playHeight, COLS, 0, 0);
     game->logField = newwin(LINES - playHeight, COLS, playHeight, 0);
 
-    if (game->playField && game->logField)
+    if (game->playField && game->logField) {
+        // Set up scrolling for logField
+        // Scrolling area is the area around the border
+        wsetscrreg(game->logField, 1, game->logFieldHeight - 1);
+        scrollok(game->logField, TRUE);
+
+        // Put the cursor for logField on the second line to start
+        wmove(game->logField, 1, 1);
         return OK;
+    }
     else    
         return ERR;
 }
@@ -20,23 +28,7 @@ static void Game_drawBorders(Game_t* this) {
     box(this->logField, ACS_VLINE, ACS_HLINE);
 }
 
-static void Game_drawLog(Game_t* this) {
-    char** current = NULL;
-    int line = 1;
-
-    // Move off the borders
-    wmove(this->logField, line, 1);
-
-    // Print the contents of the log (like, the last whatever lines)
-    while((current = (char**)utringbuffer_next(this->log, current))) {
-        
-        mvwprintw(this->logField, line++, 1, "%s\n", *current);
-    }
-}
-
 int Game_init(Game_t* this) {
-    char* msg = "Hello";
-
     if (!this)
         return ERR;
     
@@ -58,11 +50,6 @@ int Game_init(Game_t* this) {
     // Center the board, and then move it 10 spaces to the left
     Board_centerOnWindow(this->board, this->playField);
     this->board->xPosition -= 10;
-
-    // Get space for 6 log items
-    utringbuffer_new(this->log, 6, &ut_str_icd);
-
-    utringbuffer_push_back(this->log, &msg);
 
     return OK;
 }
@@ -102,11 +89,14 @@ void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
 }
 
 void Game_log(Game_t* this, const char* message) {
-    utringbuffer_push_back(this->log, &message);
+    int x, y;
+    getyx(this->logField, y, x);
+
+    // Print 1 character into the field to avoid the border
+    mvwprintw(this->logField, y, 1, "%s\n", message);
 }
 
 void Game_draw(Game_t* this) {
-    Game_drawLog(this);
     Game_drawBorders(this);
     
     Board_draw(this->board, this->playField);
@@ -125,8 +115,6 @@ void Game_free(Game_t* this) {
         this->xMove = NULL;
         this->oMove = NULL;
         this->board = NULL;
-
-        utringbuffer_free(this->log);
 
         delwin(this->playField);
         delwin(this->logField);

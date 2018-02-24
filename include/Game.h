@@ -9,8 +9,6 @@
 
 #include "Board.h"
 
-#include "utringbuffer.h"
-
 typedef int (*move_select_t)(Board_t*);
 
 typedef struct {
@@ -24,8 +22,6 @@ typedef struct {
 
     int playFieldHeight;
     int logFieldHeight;
-    
-    UT_ringbuffer* log;
 } Game_t;
 
 int  Game_init(Game_t* this);

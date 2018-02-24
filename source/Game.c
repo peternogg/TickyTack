@@ -20,36 +20,51 @@ static void Game_drawBorders(Game_t* this) {
     box(this->logField, ACS_VLINE, ACS_HLINE);
 }
 
-int Game_init(Game_t* this) {
-    int status = ERR;
+static void Game_drawLog(Game_t* this) {
+    char** current = NULL;
+    int line = 1;
 
-    if (this) {
-        this->board = malloc(sizeof(Board_t));
+    // Move off the borders
+    wmove(this->logField, line, 1);
 
-        status = this->board ? OK : ERR;
-
-        // If the board couldn't be allocated, fail
-        if (status == OK) {
-            Board_init(this->board);
-            this->board->width = 19;
-            this->board->height = 10;
-
-            this->moveCount = 0;
-            this->xMove = NULL;
-            this->oMove = NULL;
-            this->keepPlaying = 1;
-
-            status = Game_createWindows(this);
-
-            if (status == OK) {
-                // Center the board, and then move it 10 spaces to the left
-                Board_centerOnWindow(this->board, this->playField);
-                //this->board->xPosition -= 10;
-            }
-        }
+    // Print the contents of the log (like, the last whatever lines)
+    while((current = (char**)utringbuffer_next(this->log, current))) {
+        
+        mvwprintw(this->logField, line++, 1, "%s\n", *current);
     }
+}
 
-    return status;
+int Game_init(Game_t* this) {
+    char* msg = "Hello";
+
+    if (!this)
+        return ERR;
+    
+    if (!(this->board = malloc(sizeof(Board_t))))
+        return ERR;
+
+    Board_init(this->board);
+    this->board->width = 19;
+    this->board->height = 10;
+
+    this->moveCount = 0;
+    this->xMove = NULL;
+    this->oMove = NULL;
+    this->keepPlaying = 1;
+
+    if (Game_createWindows(this) != OK)
+        return ERR;
+
+    // Center the board, and then move it 10 spaces to the left
+    Board_centerOnWindow(this->board, this->playField);
+    this->board->xPosition -= 10;
+
+    // Get space for 6 log items
+    utringbuffer_new(this->log, 6, &ut_str_icd);
+
+    utringbuffer_push_back(this->log, &msg);
+
+    return OK;
 }
 
 void Game_handleCharacter(Game_t* this, int ch) {
@@ -86,7 +101,12 @@ void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
     }
 }
 
+void Game_log(Game_t* this, const char* message) {
+    utringbuffer_push_back(this->log, &message);
+}
+
 void Game_draw(Game_t* this) {
+    Game_drawLog(this);
     Game_drawBorders(this);
     
     Board_draw(this->board, this->playField);
@@ -105,6 +125,8 @@ void Game_free(Game_t* this) {
         this->xMove = NULL;
         this->oMove = NULL;
         this->board = NULL;
+
+        utringbuffer_free(this->log);
 
         delwin(this->playField);
         delwin(this->logField);

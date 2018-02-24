@@ -1,5 +1,5 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef _GAME_H
+#define _GAME_H
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -35,7 +35,7 @@ void Game_free(Game_t* this);
 void Game_draw(Game_t* this);
 
 // Put a message in the game's log window.
-void Game_log(const char* message);
+void Game_log(Game_t* this, const char* message);
 
 // Handle events for the game
 void Game_handleMouseEvent(Game_t* this, MEVENT* event);

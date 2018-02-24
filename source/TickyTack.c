@@ -6,6 +6,8 @@
 
 int main() {
     Game_t game;
+    char buffer[512];
+    int counter = 1000;
 
     Curses_init();
     
@@ -17,7 +19,14 @@ int main() {
     }
 
     while(game.keepPlaying) {
-        Game_handleCharacter(&game, getch());
+        int ch = getch();
+
+        if (ch == 'd') {
+            snprintf(buffer, 512, "Hello! Message #%d", counter++);
+            Game_log(&game, buffer);
+        }
+
+        Game_handleCharacter(&game, ch);
         Game_draw(&game);
     }
 

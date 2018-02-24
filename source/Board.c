@@ -4,6 +4,7 @@ void Board_init(Board_t* this) {
     for(int i = 0; i < SPACE_COUNT; i++)
         this->spaces[i] = ' ';
 
+    // Default to 5x5 characters
     this->width = 5;
     this->height = 5;
 }
@@ -50,8 +51,6 @@ void Board_draw(Board_t* this, WINDOW* win) {
     waddch(win, ACS_PLUS);
     wmove(win, y + yStride - 1, x + 2 * xStride - 1);
     waddch(win, ACS_PLUS);
-
-    wrefresh(win);
 }
 
 void Board_centerOnWindow(Board_t* this, WINDOW* win) {

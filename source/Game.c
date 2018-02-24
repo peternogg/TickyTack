@@ -39,9 +39,11 @@ int Game_init(Game_t* this) {
     this->board->width = 19;
     this->board->height = 10;
 
+    NullPlayer.currentGame = this;
+
     this->moveCount = 0;
-    this->xMove = NULL;
-    this->oMove = NULL;
+    this->xPlayer = &NullPlayer;
+    this->yPlayer = &NullPlayer;
     this->keepPlaying = 1;
 
     if (Game_createWindows(this) != OK)
@@ -56,27 +58,50 @@ int Game_init(Game_t* this) {
 
 void Game_handleCharacter(Game_t* this, int ch) {
     MEVENT mouseEvent;
+    bool handled = false;
+    Player_t* currentPlayer = this->moveCount & 1 ? this->xPlayer : this->yPlayer;
 
     switch(ch) {
         case KEY_MOUSE:
+            handled = true;
             if (getmouse(&mouseEvent) == OK) {
                 Game_handleMouseEvent(this, &mouseEvent);
             }
         break;
 
         case KEY_UP:
-            mvwaddch(this->logField, 2, 2, 'u');
+            Board_moveCursorRelative(this->board, 0, -1);
         break;
 
+        case KEY_DOWN:
+            Board_moveCursorRelative(this->board, 0, 1);
+        break;
+
+        case KEY_LEFT:
+            Board_moveCursorRelative(this->board, -1, 0);
+        break;
+
+        case KEY_RIGHT:
+            Board_moveCursorRelative(this->board, 1, 0);
+        break;
+
+        case 'Q':
         case 'q':
+            handled = true;
             this->keepPlaying = false;
         break;
 
+        case 'F':
         case 'f':
+            handled = true;
             for (int i = 0; i < SPACE_COUNT; i++)
                 this->board->spaces[i] = (rand() % 26) + 'A';
         break;
     }
+
+    // Pass the input on to whoever is playing now
+    // If the input was handled, then pass ERR
+    currentPlayer->handleUpdate(currentPlayer, handled ? ERR : ch);
 }
 
 void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
@@ -112,8 +137,8 @@ void Game_free(Game_t* this) {
         this->moveCount = 0;
         this->keepPlaying = 0;
 
-        this->xMove = NULL;
-        this->oMove = NULL;
+        this->xPlayer = NULL;
+        this->yPlayer = NULL;
         this->board = NULL;
 
         delwin(this->playField);

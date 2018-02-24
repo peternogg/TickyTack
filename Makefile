@@ -1,5 +1,5 @@
 CC := clang
-WARNINGS := -Wall -Wextra
+WARNINGS := -Wall
 CFLAGS = -g -I$(INCLUDE)
 
 SRC = source/
@@ -8,7 +8,7 @@ INCLUDE := include/
 
 all: TickyTack
 
-TickyTack: TickyTack.o Game.o Board.o
+TickyTack: TickyTack.o Game.o Board.o Player.o
 	$(CC) $(WARNINGS) $(CFLAGS) $(BUILD)*.o -o $(BUILD)TickyTack -lncurses
 
 TickyTack.o: $(SRC)TickyTack.c
@@ -19,6 +19,9 @@ Game.o: $(SRC)Game.c
 
 Board.o: $(SRC)Board.c
 	$(CC) $(WARNINGS) $(CFLAGS) -c $(SRC)Board.c -o $(BUILD)Board.o
+
+Player.o: $(SRC)Player.c
+	$(CC) $(WARNINGS) $(CFLAGS) -c $(SRC)Player.c -o $(BUILD)Player.o
 
 clean:
 	rm -f $(BUILD)*

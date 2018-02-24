@@ -21,6 +21,9 @@ typedef struct {
 
     WINDOW* playField;
     WINDOW* logField;
+
+    int playFieldHeight;
+    int logFieldHeight;
     
     UT_ringbuffer* log;
 } Game_t;
@@ -28,6 +31,14 @@ typedef struct {
 int  Game_init(Game_t* this);
 void Game_free(Game_t* this);
 
+// Draw the game to the screen
 void Game_draw(Game_t* this);
+
+// Put a message in the game's log window.
+void Game_log(const char* message);
+
+// Handle events for the game
+void Game_handleMouseEvent(Game_t* this, MEVENT* event);
+void Game_handleCharacter(Game_t* this, int character);
 
 #endif

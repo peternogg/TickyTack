@@ -5,6 +5,28 @@
 #include "TickyTack.h"
 
 int main() {
+    Game_t game;
+
+    Curses_init();
+    
+    if (Game_init(&game) == ERR)
+    {
+        endwin();
+        perror("Unable to start game");
+        exit(1);
+    }
+
+    while(game.keepPlaying) {
+        Game_handleCharacter(&game, getch());
+        Game_draw(&game);
+    }
+
+    Game_free(&game);
+
+    endwin();
+}
+
+void Curses_init() {
     // Prep the screen
     initscr();
     cbreak();
@@ -19,50 +41,4 @@ int main() {
 
     // Ask for mouse position info
     mousemask(REPORT_MOUSE_POSITION | BUTTON1_CLICKED | BUTTON1_PRESSED, NULL);
-
-    Game_t game;
-    MEVENT mouseEvent;
-
-    if (Game_init(&game) == ERR)
-    {
-        endwin();
-        fputs("Unable to start game.", stderr);
-        exit(1);
-    }
-
-    while(game.keepPlaying) {
-        box(game.playField, '|', '-');
-        box(game.logField, '|', '-');
-
-        wrefresh(game.playField);
-        wrefresh(game.logField);
-
-        int c = getch();
-
-        if (c == KEY_MOUSE) {
-            // Whoa! Mouse event!
-            if (getmouse(&mouseEvent) == OK) {
-                if (mouseEvent.bstate & BUTTON1_CLICKED) {
-                    // If the mouse was clicked on the play window, then 
-                    if (wenclose(game.playField, mouseEvent.y, mouseEvent.x)) {
-                        mvwaddch(game.playField, mouseEvent.y, mouseEvent.x, 'c');
-                    }
-                }
-            }
-        }
-
-        if (c == 'q')
-            game.keepPlaying = false;
-
-        if (c == 'f') {
-            for (int i = 0; i < SPACE_COUNT; i++)
-                game.board->spaces[i] = (rand() % 26) + 'A';
-        }
-
-        Game_draw(&game);
-    }
-
-    Game_free(&game);
-
-    endwin();
 }

@@ -6,10 +6,7 @@
 #include "Game.h"
 #include "Board.h"
 
-void Update();
-void DrawBoard(Board_t*, WINDOW*, int, int);
-
-int CreateWindows(WINDOW** play, WINDOW** log);
+void Curses_init();
 
 int PlayerMove(Board_t* board);
 int RandomMove(Board_t* board);

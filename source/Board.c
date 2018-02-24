@@ -7,6 +7,14 @@ void Board_init(Board_t* this) {
     // Default to 5x5 characters
     this->width = 5;
     this->height = 5;
+
+    this->cellWidth = this->width / 3;
+    this->cellHeight = this->height / 3;
+
+    this->cursorX = 1;
+    this->cursorY = 1;
+
+    this->cursorAttributes = A_REVERSE | A_BLINK;
 }
 
 void Board_draw(Board_t* this, WINDOW* win) {
@@ -15,17 +23,25 @@ void Board_draw(Board_t* this, WINDOW* win) {
     int y = this->yPosition - 1;
 
     // The size of a step to take between placing a character
-    int xStride = this->width / 3 + 1;
-    int yStride = this->height / 3 + 1;
+    int xStride = this->cellWidth + 1;
+    int yStride = this->cellHeight + 1;
+
+    int cur_attr = 0;
 
     for (int placeY = 0; placeY < 3; placeY++) {
         for (int placeX = 0; placeX < 3; placeX++) {
+            // Turn on reverse video if we're drawing the cell the cursor is on
+            if (this->cursorX == placeX && this->cursorY == placeY)
+                cur_attr = this->cursorAttributes; 
+            else   
+                cur_attr = 0;
+
             // Draw a box at (placeX, placeY) which fills the
             // square it sits in
             for (int i = 0; i < yStride - 1; i++)
                 for (int j = 0; j < xStride - 1; j++) {
                     wmove(win, y + (placeY * yStride) + i, x + (placeX * xStride) + j);
-                    waddch(win, this->spaces[placeX + 3 * placeY]);
+                    waddch(win, this->spaces[placeX + 3 * placeY] | cur_attr);
                 }
         }
     }
@@ -60,9 +76,24 @@ void Board_centerOnWindow(Board_t* this, WINDOW* win) {
 
     this->xPosition = (winWidth / 2) - (this->width / 2);
     this->yPosition = (winHeight / 2) - (this->height / 2);
+
+    this->cellWidth = this->width / 3;
+    this->cellHeight = this->height / 3;
 }
 
 bool Board_isSpaceOccupied(Board_t* this, int space) {
     return (space < SPACE_COUNT && space >= 0
             && this->spaces[space]);
+}
+
+void Board_moveCursorRelative(Board_t* this, int dX, int dY) {
+    Board_setCursorPosition(this, this->cursorX + dX, this->cursorY + dY);
+}
+
+void Board_setCursorPosition(Board_t* this, int x, int y) {
+    if (x >= 0 && x <= 2)
+        if (y >= 0 && y <= 2) {
+            this->cursorX = x;
+            this->cursorY = y;
+        }
 }

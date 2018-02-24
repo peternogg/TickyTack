@@ -16,8 +16,8 @@ static int Game_createWindows(Game_t* game) {
 }
 
 static void Game_drawBorders(Game_t* this) {
-    box(this->playField, '|', '-');
-    box(this->logField, '|', '-');
+    box(this->playField, ACS_VLINE, ACS_HLINE);
+    box(this->logField, ACS_VLINE, ACS_HLINE);
 }
 
 int Game_init(Game_t* this) {
@@ -31,6 +31,8 @@ int Game_init(Game_t* this) {
         // If the board couldn't be allocated, fail
         if (status == OK) {
             Board_init(this->board);
+            this->board->width = 19;
+            this->board->height = 10;
 
             this->moveCount = 0;
             this->xMove = NULL;
@@ -38,6 +40,12 @@ int Game_init(Game_t* this) {
             this->keepPlaying = 1;
 
             status = Game_createWindows(this);
+
+            if (status == OK) {
+                // Center the board, and then move it 10 spaces to the left
+                Board_centerOnWindow(this->board, this->playField);
+                //this->board->xPosition -= 10;
+            }
         }
     }
 
@@ -81,8 +89,8 @@ void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
 void Game_draw(Game_t* this) {
     Game_drawBorders(this);
     
-    Board_draw(this->board, this->playField, 4, 4);
-    
+    Board_draw(this->board, this->playField);
+
     wrefresh(this->playField);
     wrefresh(this->logField);
 }

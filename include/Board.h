@@ -12,10 +12,13 @@
 typedef struct {
     char spaces[SPACE_COUNT];
     
+    int xPosition, yPosition;
+    int width, height;
 } Board_t;
 
 void Board_init(Board_t* this);
 bool Board_isSpaceOccupied(Board_t* this, int space);
-void Board_draw(Board_t* this, WINDOW* win, int yPosition, int xPosition);
+void Board_centerOnWindow(Board_t* this, WINDOW* win);
+void Board_draw(Board_t* this, WINDOW* win);
 
 #endif

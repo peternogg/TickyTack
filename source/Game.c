@@ -32,7 +32,7 @@ int Game_init(Game_t* this) {
     if (!this)
         return ERR;
     
-    if (!(this->board = malloc(sizeof(Board_t))))
+    if ((this->board = malloc(sizeof(Board_t))) == NULL)
         return ERR;
 
     Board_init(this->board);

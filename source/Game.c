@@ -105,12 +105,22 @@ void Game_handleCharacter(Game_t* this, int ch) {
 }
 
 void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
+    #define BUF_SZ 100
+    char buffer[BUF_SZ];
+
     if (mouseEvent->bstate & BUTTON1_CLICKED) {
         // If the mouse was clicked on the play window, then 
         if (wenclose(this->playField, mouseEvent->y, mouseEvent->x)) {
             mvwaddch(this->playField, mouseEvent->y, mouseEvent->x, 'c');
         }
     }
+    
+    if (mouseEvent->bstate & REPORT_MOUSE_POSITION) {
+        snprintf(buffer, BUF_SZ, "Mouse moved to (%d, %d)", mouseEvent->x, mouseEvent->y);
+        Game_log(this, buffer);
+    }
+
+    #undef BUF_SZ
 }
 
 void Game_log(Game_t* this, const char* message) {

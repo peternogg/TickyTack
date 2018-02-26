@@ -19,7 +19,7 @@ typedef struct Game_t {
     WINDOW* logField;
 
     Player_t* xPlayer;
-    Player_t* yPlayer;
+    Player_t* oPlayer;
 
     int playFieldHeight;
     int logFieldHeight;
@@ -38,6 +38,7 @@ void Game_log(Game_t* this, const char* message);
 void Game_handleMouseEvent(Game_t* this, MEVENT* event);
 void Game_handleCharacter(Game_t* this, int character);
 
+void Game_moveAtCursor(Game_t* this);
 void Game_processMove(Game_t* this, int space);
 
 #endif

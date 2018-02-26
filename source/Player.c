@@ -1,7 +1,7 @@
 #include "Player.h"
 #include "Game.h"
 
-static void DoNothing(Player_t* player, int input) {
+static void DoNothing(Player_t* player, int input, MEVENT* mouseEvent) {
     #define BUF_SZ 100
     char buffer[BUF_SZ];
 

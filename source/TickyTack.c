@@ -6,6 +6,9 @@
 
 int main() {
     Game_t game;
+    Player_t humanPlayer = { &game, &PlayerMove },
+             botPlayer   = { &game, &RandomMove };
+
     char buffer[512];
     int counter = 1000;
 
@@ -18,12 +21,21 @@ int main() {
         exit(1);
     }
 
+    game.xPlayer = &humanPlayer;
+    game.oPlayer = &botPlayer;
+
     while(game.keepPlaying) {
         int ch = getch();
 
         if (ch == 'd') {
             snprintf(buffer, 512, "Hello! Message #%d", counter++);
             Game_log(&game, buffer);
+        } else if (ch == 'r') {
+            // Reset the board to spaces
+            for (int i = 0; i < SPACE_COUNT; i++)
+                game.board->spaces[i] = ' ';
+
+            Game_log(&game, "Reset board!");
         }
 
         Game_handleCharacter(&game, ch);
@@ -50,4 +62,30 @@ void Curses_init() {
 
     // Ask for mouse position info
     mousemask(REPORT_MOUSE_POSITION | BUTTON1_CLICKED | BUTTON1_PRESSED, NULL);
+}
+
+void PlayerMove(Player_t* this, int frameInput, MEVENT* mouseEvent) {
+    // Tell the game to make a move wherever the cursor is now
+    if (frameInput == '\n') {
+        Game_moveAtCursor(this->currentGame);
+    } else if (frameInput == KEY_MOUSE) {
+        // Mouse input!
+        if (mouseEvent->bstate & BUTTON1_CLICKED)
+            Game_moveAtCursor(this->currentGame);
+    }
+}
+
+void RandomMove(Player_t* this, int frameInput, MEVENT* mouseEvent) {
+    int space;
+    int tries = 0;
+    do {
+        space = rand() % SPACE_COUNT;
+        tries++;
+    } while(tries < 9 && Board_isSpaceOccupied(this->currentGame->board, space));
+
+    if (tries >= 9)
+        Game_log(this->currentGame, "RandomMove failed to find an open spot.");
+    else {
+        Game_processMove(this->currentGame, space);
+    }
 }

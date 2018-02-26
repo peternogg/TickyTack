@@ -43,7 +43,7 @@ int Game_init(Game_t* this) {
 
     this->moveCount = 0;
     this->xPlayer = &NullPlayer;
-    this->yPlayer = &NullPlayer;
+    this->oPlayer = &NullPlayer;
     this->keepPlaying = 1;
 
     if (Game_createWindows(this) != OK)
@@ -59,11 +59,10 @@ int Game_init(Game_t* this) {
 void Game_handleCharacter(Game_t* this, int ch) {
     MEVENT mouseEvent;
     bool handled = false;
-    Player_t* currentPlayer = this->moveCount & 1 ? this->xPlayer : this->yPlayer;
+    Player_t* currentPlayer = this->moveCount & 1 ? this->oPlayer : this->xPlayer;
 
     switch(ch) {
         case KEY_MOUSE:
-            handled = true;
             if (getmouse(&mouseEvent) == OK) {
                 Game_handleMouseEvent(this, &mouseEvent);
             }
@@ -101,7 +100,7 @@ void Game_handleCharacter(Game_t* this, int ch) {
 
     // Pass the input on to whoever is playing now
     // If the input was handled, then pass ERR
-    currentPlayer->handleUpdate(currentPlayer, handled ? ERR : ch);
+    currentPlayer->handleUpdate(currentPlayer, handled ? ERR : ch, ch == KEY_MOUSE ? &mouseEvent : NULL);
 }
 
 void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
@@ -109,7 +108,6 @@ void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
     char buffer[BUF_SZ];
 
     if (mouseEvent->bstate & BUTTON1_CLICKED) {
-        // If the mouse was clicked on the play window, then 
         if (wenclose(this->playField, mouseEvent->y, mouseEvent->x)) {
             mvwaddch(this->playField, mouseEvent->y, mouseEvent->x, 'c');
         }
@@ -148,10 +146,36 @@ void Game_free(Game_t* this) {
         this->keepPlaying = 0;
 
         this->xPlayer = NULL;
-        this->yPlayer = NULL;
+        this->oPlayer = NULL;
         this->board = NULL;
 
         delwin(this->playField);
         delwin(this->logField);
+    }
+}
+
+void Game_moveAtCursor(Game_t* this) {
+    Board_t* board = this->board;
+    int selectedSpace = board->cursorX + (board->cursorY * 3);
+
+    Game_processMove(this, selectedSpace);
+}
+
+void Game_processMove(Game_t* this, int space) {
+    char ch = (this->moveCount & 1 ? 'O' : 'X');
+    char buffer[100];
+
+    if (Board_isSpaceOccupied(this->board, space)) {
+        Game_log(this, "Sorry! You can't put a piece there.");
+    } else {
+        this->board->spaces[space] = ch;
+        snprintf(buffer, 100, "Move %d: Player %d placed %c at %d", 
+            this->moveCount,
+            this->moveCount & 1 ? 2 : 1,
+            ch,
+            space);
+
+        this->moveCount++;
+        Game_log(this, buffer);
     }
 }

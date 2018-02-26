@@ -5,14 +5,15 @@
 #include "TickyTack.h"
 
 typedef struct {
-    struct Game_t* currentGame;
-    UpdateHandler_t handleUpdate;
+    // The offsets of the members of base match the offsets of those
+    // same members in Player_t because of C's struct layout stuff.
+    Player_t base;
     int moves;
 } HumanPlayer_t;
 
 int main() {
     Game_t game;
-    HumanPlayer_t humanPlayer = { &game, &PlayerMove };
+    HumanPlayer_t humanPlayer = { { &game, &PlayerMove }, 0 };
     Player_t botPlayer        = { &game, &RandomMove };
 
     char buffer[512];
@@ -80,7 +81,7 @@ void PlayerMove(Player_t* this, int frameInput, MEVENT* mouseEvent) {
 
         hum->moves++;
         snprintf(buffer, 100, "Human has made %d moves.", hum->moves);
-        Game_log(hum->currentGame, buffer);
+        Game_log(hum->base.currentGame, buffer);
     } else if (frameInput == KEY_MOUSE) {
         // Mouse input!
         if (mouseEvent->bstate & BUTTON1_CLICKED)

@@ -83,7 +83,7 @@ void Board_centerOnWindow(Board_t* this, WINDOW* win) {
 
 bool Board_isSpaceOccupied(Board_t* this, int space) {
     return (space < SPACE_COUNT && space >= 0
-            && this->spaces[space]);
+            && this->spaces[space] != ' ');
 }
 
 void Board_moveCursorRelative(Board_t* this, int dX, int dY) {

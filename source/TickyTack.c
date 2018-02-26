@@ -4,10 +4,16 @@
 
 #include "TickyTack.h"
 
+typedef struct {
+    struct Game_t* currentGame;
+    UpdateHandler_t handleUpdate;
+    int moves;
+} HumanPlayer_t;
+
 int main() {
     Game_t game;
-    Player_t humanPlayer = { &game, &PlayerMove },
-             botPlayer   = { &game, &RandomMove };
+    HumanPlayer_t humanPlayer = { &game, &PlayerMove };
+    Player_t botPlayer        = { &game, &RandomMove };
 
     char buffer[512];
     int counter = 1000;
@@ -21,7 +27,7 @@ int main() {
         exit(1);
     }
 
-    game.xPlayer = &humanPlayer;
+    game.xPlayer = (Player_t*)&humanPlayer;
     game.oPlayer = &botPlayer;
 
     while(game.keepPlaying) {
@@ -65,9 +71,16 @@ void Curses_init() {
 }
 
 void PlayerMove(Player_t* this, int frameInput, MEVENT* mouseEvent) {
+    HumanPlayer_t* hum = (HumanPlayer_t*)this;
+    char buffer[100];
+
     // Tell the game to make a move wherever the cursor is now
     if (frameInput == '\n') {
         Game_moveAtCursor(this->currentGame);
+
+        hum->moves++;
+        snprintf(buffer, 100, "Human has made %d moves.", hum->moves);
+        Game_log(hum->currentGame, buffer);
     } else if (frameInput == KEY_MOUSE) {
         // Mouse input!
         if (mouseEvent->bstate & BUTTON1_CLICKED)

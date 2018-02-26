@@ -1,7 +1,3 @@
-#include <stdlib.h>
-#include <unistd.h>
-#include <ncurses.h>
-
 #include "TickyTack.h"
 
 typedef struct {

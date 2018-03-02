@@ -12,9 +12,6 @@ int main() {
     HumanPlayer_t humanPlayer = { { &game, &PlayerMove }, 0 };
     Player_t botPlayer        = { &game, &RandomMove };
 
-    char buffer[512];
-    int counter = 1000;
-
     Curses_init();
     
     if (Game_init(&game) == ERR)
@@ -29,17 +26,6 @@ int main() {
 
     while(game.keepPlaying) {
         int ch = getch();
-
-        if (ch == 'd') {
-            snprintf(buffer, 512, "Hello! Message #%d", counter++);
-            Game_log(&game, buffer);
-        } else if (ch == 'r') {
-            // Reset the board to spaces
-            for (int i = 0; i < SPACE_COUNT; i++)
-                game.board->spaces[i] = ' ';
-
-            Game_log(&game, "Reset board!");
-        }
 
         Game_handleCharacter(&game, ch);
         Game_draw(&game);

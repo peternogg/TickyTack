@@ -46,5 +46,10 @@ void Board_moveCursorRelative(Board_t* this, int dX, int dY);
 // If the location (x, y) is not on the board (i.e. x and y are not in [0, 2]) then
 // the cursor doesn't move
 void Board_setCursorPosition(Board_t* this, int x, int y);
+// Check if all the spaces in the board are occupied
+bool Board_isFull(Board_t* this);
+// Reset the board state to its initial one - all spaces open, and
+// the cursor is in the center
+void Board_reset(Board_t* this);
 
 #endif

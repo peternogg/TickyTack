@@ -10,6 +10,8 @@
 #include "Board.h"
 #include "Player.h"
 
+enum GameState { PLAYING, X_WIN, O_WIN, DRAW, RESETTING };
+
 typedef struct Game_t {
     // The board for the current game
     Board_t* board;
@@ -32,6 +34,8 @@ typedef struct Game_t {
     // The height (in rows) of the play and log windows
     int playFieldHeight;
     int logFieldHeight;
+
+    enum GameState state;
 } Game_t;
 
 // Initialize a Game object
@@ -56,8 +60,9 @@ void Game_moveAtCursor(Game_t* this);
 // Which piece depends on the value in moveCount
 // Even moveCounts place an X, odd ones place an O
 void Game_processMove(Game_t* this, int space);
-
+// Reset the state of a game to its first move
+void Game_reset(Game_t* this);
 // Check if the game has finished - either in a win or a draw
-bool Game_hasFinished(Game_t* this);
+char Game_hasFinished(Game_t* this);
 
 #endif

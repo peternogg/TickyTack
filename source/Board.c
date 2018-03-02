@@ -1,8 +1,7 @@
 #include "Board.h"
 
 void Board_init(Board_t* this) {
-    for(int i = 0; i < SPACE_COUNT; i++)
-        this->spaces[i] = ' ';
+    Board_reset(this);
 
     // Default to 5x5 characters
     this->width = 5;
@@ -10,9 +9,6 @@ void Board_init(Board_t* this) {
 
     this->cellWidth = this->width / 3;
     this->cellHeight = this->height / 3;
-
-    this->cursorX = 1;
-    this->cursorY = 1;
 
     this->cursorAttributes = A_REVERSE | A_BLINK;
 }
@@ -96,4 +92,21 @@ void Board_setCursorPosition(Board_t* this, int x, int y) {
             this->cursorX = x;
             this->cursorY = y;
         }
+}
+
+bool Board_isFull(Board_t* this) {
+    // Check if each cell isn't a space
+    bool full = true;
+    for(int space = 0; full && space < SPACE_COUNT; space++)
+        full &= (this->spaces[space] != ' '); // full = full & current space is not a ' '
+
+    return full;
+}
+
+void Board_reset(Board_t* this) {
+    for(int i = 0; i < SPACE_COUNT; i++)
+        this->spaces[i] = ' ';
+
+    this->cursorX = 1;
+    this->cursorY = 1;
 }

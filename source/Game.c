@@ -45,6 +45,7 @@ int Game_init(Game_t* this) {
     this->xPlayer = &NullPlayer;
     this->oPlayer = &NullPlayer;
     this->keepPlaying = 1;
+    this->state = PLAYING;
 
     if (Game_createWindows(this) != OK)
         return ERR;
@@ -96,11 +97,23 @@ void Game_handleCharacter(Game_t* this, int ch) {
             for (int i = 0; i < SPACE_COUNT; i++)
                 this->board->spaces[i] = (rand() % 26) + 'A';
         break;
+
+        case 'R':
+        case 'r':
+            // Reset the game
+            Game_reset(this);
+        break;
     }
 
-    // Pass the input on to whoever is playing now
-    // If the input was handled, then pass ERR
-    currentPlayer->handleUpdate(currentPlayer, handled ? ERR : ch, ch == KEY_MOUSE ? &mouseEvent : NULL);
+    // Only ask for moves if we're still playing
+    if (this->state == PLAYING) {
+        // Pass the input on to whoever is playing now
+        // If the input was handled, then pass ERR
+        currentPlayer->handleUpdate(currentPlayer, handled ? ERR : ch, ch == KEY_MOUSE ? &mouseEvent : NULL);
+    }
+
+    if (this->state == RESETTING)
+        this->state = PLAYING;
 }
 
 void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
@@ -165,6 +178,10 @@ void Game_processMove(Game_t* this, int space) {
     char ch = (this->moveCount & 1 ? 'O' : 'X');
     char buffer[100];
 
+    // Ignore moves if the game is over
+    if (this->state != PLAYING)
+        return;
+
     if (Board_isSpaceOccupied(this->board, space)) {
         Game_log(this, "Sorry! You can't put a piece there.");
     } else {
@@ -178,4 +195,93 @@ void Game_processMove(Game_t* this, int space) {
         this->moveCount++;
         Game_log(this, buffer);
     }
+
+    // Check the win condition
+    switch(Game_hasFinished(this)) {
+        case 'X':
+            this->state = X_WIN;
+            Game_log(this, "X wins!");
+        break;
+
+        case 'O':
+            this->state = O_WIN;
+            Game_log(this, "O wins!");
+        break;
+
+        case 'd':
+            this->state = DRAW;
+            Game_log(this, "Draw!");
+        break;
+    }
+}
+
+void Game_reset(Game_t* this) {
+    this->moveCount = 0;
+    this->keepPlaying = true;
+    this->state = RESETTING;
+    Board_reset(this->board);
+
+    Game_log(this, "Game reset!");
+}
+
+static char Game_checkRow(Game_t* this, int row) {
+    if (row < 0 || row > 2)
+        return 0;
+
+    const char* const spaces = this->board->spaces; // Grab a reference
+    char winner = spaces[0 + 3 * row];
+    
+    // If the row has the same piece in each cell, and that piece isn't a space, then the winner
+    // is that piece. Otherwise, return a 0
+    return (winner != ' ' && spaces[1 + 3 * row] == winner && spaces[2 + 3 * row] == winner) ? winner : 0;
+}
+
+static char Game_checkColumn(Game_t* this, int column) {
+    if (column < 0 || column > 2)
+        return 0;
+
+    const char* const spaces = this->board->spaces; // Grab a reference
+    char winner = spaces[column];
+    
+    // If the row has the same piece in each cell, and that piece isn't a space, then the winner
+    // is that piece. Otherwise, return a 0
+    return (winner != ' ' && spaces[3 + column] == winner && spaces[6 + column] == winner) ? winner : 0;
+}
+
+char Game_hasFinished(Game_t* this) {
+    /*
+        Board index layout
+        0 | 1 | 2
+        3 | 4 | 5
+        6 | 7 | 8
+    */
+    // Implements code like https://stackoverflow.com/a/18549299
+
+    // A win for a piece is getting 3 in a row for that piece
+    // A draw is having a full board, but no win
+    char winner = 0;
+
+    // Check the rows and columns for a win
+    for (int i = 0; i < 3; i++) {
+        winner = Game_checkRow(this, i);
+        if (winner != 0 || (winner = Game_checkColumn(this, i)) != 0) {
+            // End the loop if we find a winner in row i or column i
+            break;
+        }
+    }
+
+    if (winner == 0) {
+        // Check the diagonals if there wasn't a win in the rows n cols
+        const char* const spaces = this->board->spaces; // Grab a reference
+        // Left-to-right downward
+        if (spaces[0] != ' ' && spaces[0] == spaces[4] && spaces[4] == spaces[8])
+            winner = spaces[0];
+        // Left-to-right upward
+        else if (spaces[6] != ' ' && spaces[6] == spaces[4] && spaces[4] == spaces[2])
+            winner = spaces[6];
+    }
+
+    // If winner is still 0 and we've checked everything, check if the board is full
+    // If it is, then return a draw. Otherwise, return whatever winner was
+    return (winner == 0 && Board_isFull(this->board) ? 'd' : winner);
 }

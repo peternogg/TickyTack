@@ -52,7 +52,6 @@ int Game_init(Game_t* this) {
 
     // Center the board, and then move it 10 spaces to the left
     Board_centerOnWindow(this->board, this->playField);
-    this->board->xPosition -= 10;
 
     return OK;
 }

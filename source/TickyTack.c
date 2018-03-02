@@ -12,6 +12,9 @@ int main() {
     HumanPlayer_t humanPlayer = { { &game, &PlayerMove }, 0 };
     Player_t botPlayer        = { &game, &RandomMove };
 
+    // Seed rand for botPlayer
+    srand(time(NULL));
+
     Curses_init();
     
     if (Game_init(&game) == ERR)
@@ -20,6 +23,8 @@ int main() {
         perror("Unable to start game");
         exit(1);
     }
+
+    NullPlayer.currentGame = &game;
 
     game.xPlayer = (Player_t*)&humanPlayer;
     game.oPlayer = &botPlayer;

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 
 #include <unistd.h>
+#include <time.h>
+
 #include <ncurses.h>
 
 #include "Game.h"

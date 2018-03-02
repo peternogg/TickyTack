@@ -39,8 +39,6 @@ int Game_init(Game_t* this) {
     this->board->width = 19;
     this->board->height = 10;
 
-    NullPlayer.currentGame = this;
-
     this->moveCount = 0;
     this->xPlayer = &NullPlayer;
     this->oPlayer = &NullPlayer;

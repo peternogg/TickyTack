@@ -1,42 +1,71 @@
 #include "TickyTack.h"
 
-typedef struct {
-    // The offsets of the members of base match the offsets of those
-    // same members in Player_t because of C's struct layout stuff.
-    Player_t base;
-    int moves;
-} HumanPlayer_t;
+static Game_t game;
+static TickyTackOptions_t gameOptions;
 
-int main() {
-    Game_t game;
-    HumanPlayer_t humanPlayer = { { &game, &PlayerMove }, 0 };
-    Player_t botPlayer        = { &game, &RandomMove };
+static Player_t* playerFor(enum Player player) {
+    Player_t* constructedPlayer = &NullPlayer;
+
+    switch(player) {
+        case HUMAN:
+            constructedPlayer = (Player_t*)HumanPlayer_init(NULL, &game);
+        break;
+
+        case MINMAX:
+        case RANDOM:
+            constructedPlayer = malloc(sizeof(Player_t));
+            constructedPlayer->currentGame = &game;
+            constructedPlayer->handleUpdate = &RandomMove;
+        break;
+
+        case INVALID:
+            fputs("ERROR: Got INVALID as player in TickyTack_initialize", stderr);
+            TickyTack_cleanup();
+            exit(2);
+        break;
+    }
+
+    return constructedPlayer;
+}
+
+void TickyTack_initialize(TickyTackOptions_t* options) {
+    gameOptions = *options; // Copy the options from the invoker
 
     // Seed rand for botPlayer
     srand(time(NULL));
 
+    // Set up curses
     Curses_init();
     
+    // Try to initialize the game
     if (Game_init(&game) == ERR)
     {
         endwin();
         perror("Unable to start game");
-        exit(1);
+        exit(2);
     }
 
+    // Set NullPlayer's game to this game, just in case
     NullPlayer.currentGame = &game;
 
-    game.xPlayer = (Player_t*)&humanPlayer;
-    game.oPlayer = &botPlayer;
+    // Pick the players based on the options
+    game.xPlayer = playerFor(gameOptions.xPlayer);
+    game.oPlayer = playerFor(gameOptions.oPlayer);
+}
 
+void TickyTack_gameLoop() {
     while(game.keepPlaying) {
         int ch = getch();
 
         Game_handleCharacter(&game, ch);
         Game_draw(&game);
     }
+}
 
+void TickyTack_cleanup() {
     Game_free(&game);
+    free(game.xPlayer);
+    free(game.oPlayer);
 
     endwin();
 }
@@ -56,24 +85,7 @@ void Curses_init() {
 
     // Ask for mouse position info
     mousemask(REPORT_MOUSE_POSITION | BUTTON1_CLICKED | BUTTON1_PRESSED, NULL);
-}
-
-void PlayerMove(Player_t* this, int frameInput, MEVENT* mouseEvent) {
-    HumanPlayer_t* hum = (HumanPlayer_t*)this;
-    char buffer[100];
-
-    // Tell the game to make a move wherever the cursor is now
-    if (frameInput == '\n') {
-        Game_moveAtCursor(this->currentGame);
-
-        hum->moves++;
-        snprintf(buffer, 100, "Human has made %d moves.", hum->moves);
-        Game_log(hum->base.currentGame, buffer);
-    } else if (frameInput == KEY_MOUSE) {
-        // Mouse input!
-        if (mouseEvent->bstate & BUTTON1_CLICKED)
-            Game_moveAtCursor(this->currentGame);
-    }
+    //mouseinterval(1000); // Long mouse interval
 }
 
 void RandomMove(Player_t* this, int frameInput, MEVENT* mouseEvent) {

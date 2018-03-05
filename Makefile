@@ -16,7 +16,7 @@ OBJ = $(foreach object, $(SRC), $(BUILD)/$(notdir $(object:.c=.o))) # Swap "sour
 DEP = $(OBJ:.o=.d)
 
 TickyTack: $(OBJ)
-	$(CC) $(WARNINGS) $(CFLAGS) $^ -o $(BUILD)/$@ $(LDFLAGS)\
+	$(CC) $(WARNINGS) $(CFLAGS) $^ -o $(BUILD)/$@ $(LDFLAGS)
 
 $(BUILD)/%.o: $(SOURCE)/%.c
 	$(CC) $(WARNINGS) $(CFLAGS) -c $< -o $@

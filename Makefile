@@ -6,7 +6,7 @@ BUILD   = build
 # Build flags
 CC := clang
 WARNINGS := -Wall
-CFLAGS := -g -I$(INCLUDE)
+CFLAGS := -g -I$(INCLUDE) --std=c11
 LDFLAGS = -lncurses
 
 # What to build
@@ -22,8 +22,8 @@ $(BUILD)/%.o: $(SOURCE)/%.c
 	$(CC) $(WARNINGS) $(CFLAGS) -c $< -o $@
 
 -include $(DEP)
-%.d: %.c
-	@$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) $(BUILD)/$(notdir @)
+$(BUILD)/%.d: $(SOURCE)/%.c
+	$(CC) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$(BUILD)/$(notdir $@)
 
 .PHONY: clean
 clean:

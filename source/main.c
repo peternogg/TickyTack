@@ -3,6 +3,7 @@
 #include <strings.h>
 
 #include <unistd.h>
+#include <getopt.h>
 
 #include "TickyTack.h"
 

@@ -64,7 +64,10 @@ int main(int argc, char** argv) {
 }
 
 static void showHelp(char* programName) {
-
+    fprintf(stderr, "%s: Tic Tac Toe Program\n", programName);
+    fputs("\t-x\\o <human|random|minmax>: Select the player type for the X or O player\n", stderr);
+    fputs("\t-h: Display this help information\n", stderr);
+    fputs("\t-v: Increase the verbosity level\n", stderr);
 }
 
 static enum Player getPlayer(char* input) {

@@ -1,27 +1,30 @@
+# Directories
+INCLUDE = include
+SOURCE  = source
+BUILD   = build
+
+# Build flags
 CC := clang
 WARNINGS := -Wall
-CFLAGS = -g -I$(INCLUDE)
+CFLAGS := -g -I$(INCLUDE)
+LDFLAGS = -lncurses
 
-SRC = source/
-BUILD := build/
-INCLUDE := include/
+# What to build
+SRC = $(wildcard $(SOURCE)/*.c) # Every .c file in source/
+OBJ = $(foreach object, $(SRC), $(BUILD)/$(notdir $(object:.c=.o))) # Swap "source/" for "build/" and .c for .o
+#OBJ = $(SRC:.c=.o)
+DEP = $(OBJ:.o=.d)
 
-all: TickyTack
+TickyTack: $(OBJ)
+	$(CC) $(WARNINGS) $(CFLAGS) $^ -o $(BUILD)/$@ $(LDFLAGS)\
 
-TickyTack: TickyTack.o Game.o Board.o Player.o
-	$(CC) $(WARNINGS) $(CFLAGS) $(BUILD)*.o -o $(BUILD)TickyTack -lncurses
+$(BUILD)/%.o: $(SOURCE)/%.c
+	$(CC) $(WARNINGS) $(CFLAGS) -c $< -o $@
 
-TickyTack.o: $(SRC)TickyTack.c
-	$(CC) $(WARNINGS) $(CFLAGS) -c $(SRC)TickyTack.c -o $(BUILD)TickyTack.o
+-include $(DEP)
+%.d: %.c
+	@$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) $(BUILD)/$(notdir @)
 
-Game.o: $(SRC)Game.c
-	$(CC) $(WARNINGS) $(CFLAGS) -c $(SRC)Game.c -o $(BUILD)Game.o
-
-Board.o: $(SRC)Board.c
-	$(CC) $(WARNINGS) $(CFLAGS) -c $(SRC)Board.c -o $(BUILD)Board.o
-
-Player.o: $(SRC)Player.c
-	$(CC) $(WARNINGS) $(CFLAGS) -c $(SRC)Player.c -o $(BUILD)Player.o
-
+.PHONY: clean
 clean:
-	rm -f $(BUILD)*
+	rm -f $(BUILD)/*

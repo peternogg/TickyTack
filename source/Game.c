@@ -28,6 +28,29 @@ static void Game_drawBorders(Game_t* this) {
     box(this->logField, ACS_VLINE, ACS_HLINE);
 }
 
+// Mutate the x and y parameters to point to a location on the board
+// in character cells, relative to the top left corner of the board on screen
+static bool Game_translateScreenToBoardCoords(Game_t* this, int* x, int* y) {
+    // if (!wenclose(this->playField, *x, *y)) 
+    //     return false;
+    
+    // The mouse is on the playfield - good!
+    // Check if the mouse is on the board
+    if (*x >= this->board->xPosition && *x <= (this->board->xPosition + this->board->width)) {
+        if (*y >= this->board->yPosition && *y <= (this->board->yPosition + this->board->height)) {
+            // The position is on the board
+            // Subtract the (x,y) of the top left corner of the board to make
+            // these relative to that point
+            *x = *x - this->board->xPosition;
+            *y = *y - this->board->yPosition;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int Game_init(Game_t* this) {
     if (!this)
         return ERR;
@@ -116,16 +139,22 @@ void Game_handleCharacter(Game_t* this, int ch) {
 void Game_handleMouseEvent(Game_t* this, MEVENT* mouseEvent) {
     #define BUF_SZ 100
     char buffer[BUF_SZ];
-
-    if (mouseEvent->bstate & BUTTON1_CLICKED) {
-        if (wenclose(this->playField, mouseEvent->y, mouseEvent->x)) {
-            mvwaddch(this->playField, mouseEvent->y, mouseEvent->x, 'c');
-        }
-    }
+    int boardX, boardY;
     
     if (mouseEvent->bstate & REPORT_MOUSE_POSITION) {
         snprintf(buffer, BUF_SZ, "Mouse moved to (%d, %d)", mouseEvent->x, mouseEvent->y);
-        Game_log(this, buffer);
+        //Game_log(this, buffer);
+
+        boardX = mouseEvent->x;
+        boardY = mouseEvent->y;
+
+        if (Game_translateScreenToBoardCoords(this, &boardX, &boardY)) {
+            snprintf(buffer, BUF_SZ, "Mouse is on the board at (%d, %d)", boardX, boardY);
+            //Game_log(this, buffer);
+
+            // Find the cursor location for boardX and Y
+            Board_setCursorPosition(this->board, boardX / this->board->cellWidth, boardY / this->board->cellHeight);
+        }
     }
 
     #undef BUF_SZ

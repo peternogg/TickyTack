@@ -63,9 +63,12 @@ void TickyTack_gameLoop() {
 }
 
 void TickyTack_cleanup() {
+    if (game.xPlayer != &NullPlayer)
+        free(game.xPlayer);
+        
+    if (game.xPlayer != &NullPlayer)    
+        free(game.oPlayer);
     Game_free(&game);
-    free(game.xPlayer);
-    free(game.oPlayer);
 
     endwin();
 }

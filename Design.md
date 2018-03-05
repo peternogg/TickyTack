@@ -63,3 +63,14 @@ When the game recieves input (via a call to Game_handleCharacter), then the game
 Mouse input:
 1) [DEBUG] If the mouse was clicked, then put a 'c' at the current mouse location
 1) [DEBUG] If the mouse moved, then print the new position in the log
+
+### Further work and optimization
+
+As it stands, there's a lot of code which like, implicitly depends on other code to act a particular way.
+I think main.c and TickyTack can be relatively tightly coupled, since they act like the driver, more or less. Main translates information from outside the code (i.e. command line arguments) into code for TickyTack, which then translates code into stuff for Game_t. Game_t depends, I think, on how Board_t works. A lot of the direct accesses should be replaced with getters n setters to be more object-ish. Game_t should get a verbosity setting, since I don't want to make the options struct global or anything. It might be good to hang it between Main and TickyTack so I don't have to have two copies, but it's not massively important.
+
+In that same vein, I feel like a lot of this is too complex. Like, to understand what's happening when, and why, you have to study a lot more of the code.
+
+Board_t is sort of tuned to a particular size. I should probably rework how it's laid out.
+
+It'd be cool to set up a menu thing to let users configure stuff more on-the-fly, but I'm like, out of time.

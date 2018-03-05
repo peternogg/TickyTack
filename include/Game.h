@@ -39,8 +39,18 @@ typedef struct Game_t {
 } Game_t;
 
 // Initialize a Game object
+// Default values:
+//   board: Set up in full
+//   moveCount: 0
+//   keepPlaying: 1 (TRUE)
+//   playField and logField: Set up in full
+//   xPlayer and yPlayer: Set to &NullPlayer
+//   playFieldHeight and logFieldHeight: Set to 2/3rds and 1/3rd of the height of the terminal, respectively
+//   state: PLAYING
 int  Game_init(Game_t* this);
 // Clean up after a Game object
+// This WILL set x and o players to NULL, so if they're allocated separately,
+// make sure they're freed first.
 void Game_free(Game_t* this);
 
 // Draw the game to the screen
@@ -61,6 +71,7 @@ void Game_moveAtCursor(Game_t* this);
 // Even moveCounts place an X, odd ones place an O
 void Game_processMove(Game_t* this, int space);
 // Reset the state of a game to its first move
+// Sets the game's state to RESETTING
 void Game_reset(Game_t* this);
 // Check if the game has finished - either in a win or a draw
 char Game_hasFinished(Game_t* this);
